@@ -1,10 +1,8 @@
 null = None
 #основний алгоритм
-def LibrarySort(arr, rebalance_local=True):
+def LibrarySort(arr, rebalance_local=False):
 	#Локальне (True) чи повне (False) перебалансування
-		
 	global arr_new#допоміжний масив
-		
 	e = 3#у скільки разів допоміжний масив більший основного
 	#print(e, rebalance_local, 'modified')
 	#Локальне (True) чи повне (False) перебалансування
@@ -13,7 +11,7 @@ def LibrarySort(arr, rebalance_local=True):
 	arr_new = [null for i in range(newSize)]
 		
 	#Перший елемент переносимо в середину доп. мас.
-	arr_new[LibrarySort_Pos(1, 1, newSize)] = arr[0]
+	arr_new[FindPosition(1, 1, newSize)] = arr[0]
 		
 	#Починаючи з другого ел. шукаємо місце вставки 
 	#та переносимо в доп. мас.
@@ -23,18 +21,18 @@ def LibrarySort(arr, rebalance_local=True):
 	#Перебираємо по порядку ел. осн. мас.
 	while(i < len(arr)) :
 		#бінарним пошуком шукаємо місце вставки в доп. мас.
-		pos = LibrarySort_BinarySearch(arr[i], start, finish, newSize)
+		pos = BinarySearch(arr[i], start, finish, newSize)
 		if(pos == False) :#не знайшли точку вставки
 			#повне перебалансування
-			LibrarySort_Rebalance_Total_Modified(i, newSize)#####################################################################################################################
+			RebalancingTotalModified(i, newSize)#####################################################################################################################
 			#LibrarySort_Rebalance_Total(i, newSize)#####################################################################################################################
 		else :#перевіряємо, чи вільна точка вставкиа
 			if(arr_new[pos] != null) :#Точка вставки зайнята
 				if(rebalance_local) :#Локальне перебалансування (+ вставка)
-					LibrarySort_Rebalance_Local(arr[i], pos, newSize)
+					RebalancingLocal(arr[i], pos, newSize)
 					i += 1
 				else :#Повне перебалансування
-					LibrarySort_Rebalance_Total_Modified(i, newSize)#####################################################################################################################
+					RebalancingTotalModified(i, newSize)#####################################################################################################################
 					#LibrarySort_Rebalance_Total(i, newSize)#####################################################################################################################
 				
 			else :#точка вставки вільна, просто вставляємо
@@ -58,15 +56,15 @@ def LibrarySort(arr, rebalance_local=True):
 #count - скільки на даний момент перенесено елементів
 #newSize - повний розмір допоміжного масиву
 #number <= count <= count (arr) <= newSize)
-def LibrarySort_Pos(number, count, newSize):
+def FindPosition(number, count, newSize):
 	return number * (newSize + 1) // (count + 1) - 1
 
 #############################################################
 #бінарний пошук місця вставки в допоміжному масиві
 #search - значення елемента з основного масиву, який потрібно перенести в допоміжний
-# (Start, finish) - крайні індекси діапазону, в якому відбувається пошук
+# (start, finish) - крайні індекси діапазону, в якому відбувається пошук
 #newSize - повний розмір допоміжного масиву
-def LibrarySort_BinarySearch(search, start, finish, newSize) :
+def BinarySearch(search, start, finish, newSize) :
 	
 	global arr_new#доп. мас.
 
@@ -79,7 +77,7 @@ def LibrarySort_BinarySearch(search, start, finish, newSize) :
 
     # Якщо на кордоні такого ж значення елемент що і шуканий, то потрібно вставити відразу за ним або перед ним
 	if(search == arr_new[start]) :
-		return LibrarySort_PosNearby(start, newSize)
+		return InsertNearby(start, newSize)
     # Може зустрітися випадок, коли шуканий елемент менше ніж ліва межа
 	elif(search < arr_new[start]) :
         # Тоді шуканому елементу місце між лівою межею і початком додаткового масиву
@@ -97,10 +95,10 @@ def LibrarySort_BinarySearch(search, start, finish, newSize) :
 
     # Якщо на межі такого ж значення елемент що і шуканий, то потрібно вставити відразу за ним або перед
 	if(search == arr_new[finish]) :
-		return LibrarySort_PosNearby(finish, newSize)
+		return InsertNearby(finish, newSize)
     #Може зустрітися випадок, коли шуканий елемент більше ніж права межа
 	elif(search > arr_new[finish]) :
-        #Тоді шуканого елементу місце між правою кордоном і кінцем додаткового масиву
+        #Тоді шуканого елементу місце між правою межею і кінцем додаткового масиву
 		if(finish < newSize - 1) :#Після finish є вільне місце
 			start = finish
 			finish = newSize - 1
@@ -113,8 +111,8 @@ def LibrarySort_BinarySearch(search, start, finish, newSize) :
 	# При цьому потрібно перевірити, чи є всередині діапазону ще елементи
 	if(finish - start > 1) :#Ділити діапазон має сенс, якщо там мінімум 3 елементи
 		middle = (start + finish + 1) // 2 #індекс середини діапазона
-		middle_Pos = 0 #Непустую "середину" диапазона пока не нашли
-		offset = 0 #Будемо рухатися від точної середини в пошуках непорожньої елемента
+		middle_Pos = 0 #Непусту "середину" діапазона поки не знайшли
+		offset = 0 #Будемо рухатися від точної середини в пошуках непорожнього елемента
 
 		#Отже, рухаємося від середини вліво / вправо, доки не знайдемо непорожній елемент
 		while(middle - offset > start and middle_Pos == 0):
@@ -129,14 +127,14 @@ def LibrarySort_BinarySearch(search, start, finish, newSize) :
 		# Або шукаємо місце біля нього або рекурсивно застосовуємо до лівої чи правої частини діапазону
 		if(middle_Pos) :
 			if(arr_new[middle_Pos] == search) :
-				return LibrarySort_PosNearby(middle_Pos, newSize)
+				return InsertNearby(middle_Pos, newSize)
 			else :
 				if(arr_new[middle_Pos] > search) :
 					finish = middle_Pos
 				else :#arr_new[middle_Pos] < search
 					start = middle_Pos
 				
-				return LibrarySort_BinarySearch(search, start, finish, newSize)
+				return BinarySearch(search, start, finish, newSize)
 		else :#middle_Pos == 0 - всередині діапазону (не рахуючи його кордонів) не знайдені непусті елементи
 				return middle#Середина такого діапазону - місце, куди можна вставити елемент
 
@@ -153,7 +151,7 @@ def LibrarySort_BinarySearch(search, start, finish, newSize) :
 # Якщо елемент дорівнює кінцю відрізка, то ставимо його поруч зліва чи справа
 #start - позиція, на якій вже стоїть елемент рівний шуканого
 #newSize - повний розмір допоміжного масиву
-def LibrarySort_PosNearby(start, newSize) :
+def InsertNearby(start, newSize) :
 	global arr_new#доп. мас.
     #Спочатку спробуємо знайти вільне місце перед елементом
 	for left in range(start-1, -1, -1):
@@ -162,7 +160,7 @@ def LibrarySort_PosNearby(start, newSize) :
 		elif(arr_new[left] != arr_new[start]) :#наткнулися на елемент із іншим значенням
 			break #зліва вставити не вийде, припиняємо пошук
 
-	#Если не нашли свободного места слева, попробуем поискать справа
+	#Якщо не знайшли вільне місце зліва - шуккаємо справа
 	for right in range(start+1, newSize):
 		if(arr_new[right] == null) :#порожня клітинка
 			return right #вставляємо сюди
@@ -170,12 +168,26 @@ def LibrarySort_PosNearby(start, newSize) :
 			break #Справа вставити не вийде, припиняємо пошук
 	return start #Ні зліва, ні справа від кінця відрізка не знайшли місця вставки. Але ми повертаємо хоча б точку, з якої почали пошук
 
+#############################################################################################################################################################################################
+#повне перебалансування додаткового масиву
+#count - скільки елементів на даний момент в масиві
+#newSize - повний розмір допоміжного масиву
+def RebalancingTotalModified(count, newSize) :
+	global arr_new#доп. мас.
+	arr_buf = [null for i in range(newSize)]#створюємо буферний масив
+
+	arr_new = list(filter((null).__ne__, arr_new))#видаляємо порожні елементи
+	for i in range(len(arr_new)):#кожен ел. із доп. мас. треба перенести в буф. мас.
+		pos = FindPosition(i+1, count, newSize)#перенести треба сюди
+		arr_buf[pos] = arr_new[i]#переносимо
+	arr_new = arr_buf#зливаємо масиви
+
 #############################################################
 #локальне перебалансування додаткового масиву
 #insert - значення, яке треба вставити
 #pos - починаючи з якого елементу потрібно зрушити кілька штук вліво або вправо
 #newSize - повний розмір допоміжного масиву
-def LibrarySort_Rebalance_Local(insert, pos, newSize) :
+def RebalancingLocal(insert, pos, newSize) :
 	global arr_new#доп. мас.
 	#Уточнюємо pos для insert, іноді треба трохи лівіше або правіше
 	while(pos - 1 >= 0 and arr_new[pos - 1] != null and arr_new[pos - 1] > insert) :
@@ -211,7 +223,7 @@ def LibrarySort_Rebalance_Local(insert, pos, newSize) :
 #повне перебалансування допоміжного масиву
 #count - скільки елементів на даний момент в масиві
 #newSize - повний розмір допоміжного масиву
-def LibrarySort_Rebalance_Total(count, newSize) :
+def RebalancingTotal(count, newSize) :
 	global arr_new#доп. мас.
 	global library_Number#Який за рахунком елемент переносимо
 	global library_LeftPos#Найлівіша позиція при якій вліво переносили елементи
@@ -223,7 +235,7 @@ def LibrarySort_Rebalance_Total(count, newSize) :
 	i = newSize - 1
 	while(i >= 0) :
 		if(arr_new[i] != null) :#непорожній елемент
-			pos = LibrarySort_Pos(library_Number, count, newSize)#перенести треба сюди
+			pos = FindPosition(library_Number, count, newSize)#перенести треба сюди
 			if(i == pos) :#ел. уже на своєму місці
 				i -= 1#рухаємося до наступного
 			elif(i < pos) :#ел. треба перенести праворуч
@@ -232,7 +244,7 @@ def LibrarySort_Rebalance_Total(count, newSize) :
 				i -= 1#рухаємося далі
 			else :#i > pos - ел. треба перенести вліво
                 #Рекурсивна процедура для перенесення елемента вліво
-				LibrarySort_RemoveLeft(i, pos, count, newSize)
+				MoveLeft(i, pos, count, newSize)
 				if (i > library_LeftPos):
 					i = library_LeftPos - 1
 				else:
@@ -242,23 +254,6 @@ def LibrarySort_Rebalance_Total(count, newSize) :
 		else :#порожня клітинка, переносити не треба
 			i -= 1#рухаємося далі
 
-#############################################################################################################################################################################################
-#повне перебалансування додаткового масиву
-#count - скільки елементів на даний момент в масиві
-#newSize - повний розмір допоміжного масиву
-def LibrarySort_Rebalance_Total_Modified(count, newSize) :
-    
-	global arr_new#доп. мас.
-	global library_Number#Який за рахунком елемент переносимо
-	global library_LeftPos#Найлівіша позиція при якій вліво переносили елементи
-	arr_buf = [null for i in range(newSize)]#створюємо буферний масив
-
-	arr_new = list(filter((null).__ne__, arr_new))#видаляємо порожні елементи
-	for i in range(len(arr_new)):#кожен ел. із доп. мас. треба перенести в буф. мас.
-		pos = LibrarySort_Pos(i+1, count, newSize)#перенести треба сюди
-		arr_buf[pos] = arr_new[i]#переносимо
-	arr_new = arr_buf#зливаємо масиви
-
 #############################################################
 #перенос елемента лівіше при повному перебалансуванні
 # Цьому можуть заважати інші елементи, що знаходяться зліва
@@ -266,7 +261,7 @@ def LibrarySort_Rebalance_Total_Modified(count, newSize) :
 #pos - в яку комірку потрібно перенести елемент
 #count - скільки всього зараз елементів у допоміжному масиві
 #newSize - повний розмір допоміжного масиву
-def LibrarySort_RemoveLeft(i, pos, count, newSize) :
+def MoveLeft(i, pos, count, newSize) :
 
 	global arr_new#доп. мас.
 	global library_Number#Який за рахунком елемент переносимо
@@ -285,9 +280,9 @@ def LibrarySort_RemoveLeft(i, pos, count, newSize) :
 		pass
 	else : #left >= pos, сусід зліва заважає переносу
 		library_Number -= 1#Значить, лівіше потрібно перенести сусіда зліва, який заважає 
-		left_Pos = LibrarySort_Pos(library_Number, count, newSize)#Сусіда зліва треба перенести сюди
+		left_Pos = FindPosition(library_Number, count, newSize)#Сусіда зліва треба перенести сюди
         #Рекурсивно переносимо сусіда зліва на його правильну позицію
-		LibrarySort_RemoveLeft(left, left_Pos, count, newSize)
+		MoveLeft(left, left_Pos, count, newSize)
         #Сусід зліва відсунутий, тепер можна перенести елемент
 
 	#З сусідом зліва все нормально, переносимо елемент
